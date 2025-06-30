@@ -1,33 +1,19 @@
-// ==============================
-// Kev's Scoring Calculator - Final JS (with custom score fix)
-// ==============================
-
-// CONSTANT GUTTER SIZE (locked)
 const GUTTER_SIZE = 0.125;
 
-// ==============================
-// MAIN CALCULATION + VISUALIZATION ENTRY POINT
-// ==============================
 function calculateAndRender() {
-  // Read and clean inputs
   const pageLength = parseFloat(document.getElementById("page-length").value.trim());
   const docLength = parseFloat(document.getElementById("doc-length").value.trim());
   const scoreType = document.getElementById("score-type").value;
   const customScoresInput = document.getElementById("custom-scores").value.trim();
 
-  // Input validation
   if (isNaN(pageLength) || pageLength <= 0 || isNaN(docLength) || docLength <= 0) {
     alert("Please enter valid positive numbers for page length and document length.");
     return;
   }
 
-  // Calculate max docs
   const maxDocs = calculateMaxDocuments(pageLength, docLength, GUTTER_SIZE);
-
-  // Calculate doc start positions
   const docStarts = calculateDocumentStartPositions(pageLength, docLength, GUTTER_SIZE, maxDocs);
 
-  // Calculate score positions
   let scorePositions = [];
   if (scoreType === "bifold") {
     scorePositions = calculateBifoldScores(docStarts, docLength);
@@ -39,16 +25,10 @@ function calculateAndRender() {
     scorePositions = calculateCustomDocScores(docStarts, docLength, customScoresInput);
   }
 
-  // Display results
   displayCalculationResults(maxDocs, docStarts, scorePositions);
-
-  // Draw visualization
   renderVisualization(pageLength, docStarts, docLength, scorePositions);
 }
 
-// ==============================
-// CALCULATION FUNCTIONS
-// ==============================
 function calculateMaxDocuments(pageLength, docLength, gutterSize) {
   return Math.floor((pageLength + gutterSize) / (docLength + gutterSize));
 }
@@ -99,12 +79,9 @@ function calculateCustomDocScores(docStarts, docLength, input) {
     });
   });
 
-  return positions;
+  return positions.sort((a, b) => a - b);
 }
 
-// ==============================
-// DISPLAY + VISUALIZATION
-// ==============================
 function displayCalculationResults(maxDocs, docStarts, scorePositions) {
   const out = document.getElementById("results");
   out.innerHTML = `
@@ -130,11 +107,9 @@ function renderVisualization(pageLength, docStarts, docLength, scorePositions) {
 
   ctx.save();
 
-  // Draw page outline
   ctx.strokeStyle = "black";
   ctx.strokeRect(0, H / 4, W, H / 2);
 
-  // Draw documents
   ctx.fillStyle = "#87cefa";
   docStarts.forEach(start => {
     const x = start * scale;
@@ -142,7 +117,6 @@ function renderVisualization(pageLength, docStarts, docLength, scorePositions) {
     ctx.fillRect(x, H / 4, w, H / 2);
   });
 
-  // Draw scores
   ctx.strokeStyle = "red";
   scorePositions.forEach(pos => {
     const x = pos * scale;
@@ -155,9 +129,6 @@ function renderVisualization(pageLength, docStarts, docLength, scorePositions) {
   ctx.restore();
 }
 
-// ==============================
-// QUICK SELECT + INTERACTION
-// ==============================
 function quickSelectPageLength(value) {
   document.getElementById("page-length").value = value;
 }
@@ -177,9 +148,6 @@ function selectScoreType(value) {
   }
 }
 
-// ==============================
-// INIT: Set gutter display if dynamic in future
-// ==============================
 document.addEventListener("DOMContentLoaded", () => {
   const gutterDisplay = document.getElementById("gutter-display");
   if (gutterDisplay) {
