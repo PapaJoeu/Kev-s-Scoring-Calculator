@@ -1,4 +1,5 @@
 const GUTTER_SIZE = 0.125;
+let lastScorePositions = []; // To store unadjusted scores for adjustments
 
 function calculateAndRender() {
   const pageLength = parseFloat(document.getElementById("page-length").value.trim());
@@ -25,8 +26,11 @@ function calculateAndRender() {
     scorePositions = calculateCustomDocScores(docStarts, docLength, customScoresInput);
   }
 
+  lastScorePositions = [...scorePositions]; // Save for adjustments
+
   displayCalculationResults(maxDocs, docStarts, scorePositions);
   renderVisualization(pageLength, docStarts, docLength, scorePositions);
+  clearAdjustedResults(); // Clear any previous adjustments
 }
 
 function calculateMaxDocuments(pageLength, docLength, gutterSize) {
@@ -83,12 +87,43 @@ function calculateCustomDocScores(docStarts, docLength, input) {
 }
 
 function displayCalculationResults(maxDocs, docStarts, scorePositions) {
-  const out = document.getElementById("results");
-  out.innerHTML = `
-    <strong>Max Documents:</strong> ${maxDocs}<br>
-    <strong>Document Start Positions:</strong> ${docStarts.join(", ")}<br>
-    <strong>Score Positions:</strong> ${scorePositions.join(", ")}
-  `;
+  const container = document.getElementById("results");
+  let html = `<div><strong>N-up:</strong> ${maxDocs}</div>`;
+  html += `<table>
+    <tr><th>Type</th><th>#</th><th>Measurement (in)</th></tr>`;
+  docStarts.forEach((pos, i) => {
+    html += `<tr><td>Document Start</td><td>${i + 1}</td><td>${pos.toFixed(3)}</td></tr>`;
+  });
+  scorePositions.forEach((pos, i) => {
+    html += `<tr><td>Score Position</td><td>${i + 1}</td><td>${pos.toFixed(3)}</td></tr>`;
+  });
+  html += `</table>`;
+  container.innerHTML = html;
+}
+
+function clearAdjustedResults() {
+  document.getElementById("adjusted-results").innerHTML = "";
+}
+
+function adjustScores(delta) {
+  if (lastScorePositions.length === 0) {
+    alert("Please calculate first before adjusting.");
+    return;
+  }
+  const adjusted = lastScorePositions.map(p => Math.round((p + delta) * 1000) / 1000);
+  displayAdjustedResults(adjusted);
+}
+
+function displayAdjustedResults(adjusted) {
+  const container = document.getElementById("adjusted-results");
+  let html = `<div><strong>Adjusted Scores</strong></div>`;
+  html += `<table>
+    <tr><th>Adjusted #</th><th>Measurement (in)</th></tr>`;
+  adjusted.forEach((pos, i) => {
+    html += `<tr><td>${i + 1}</td><td>${pos.toFixed(3)}</td></tr>`;
+  });
+  html += `</table>`;
+  container.innerHTML = html;
 }
 
 function renderVisualization(pageLength, docStarts, docLength, scorePositions) {
