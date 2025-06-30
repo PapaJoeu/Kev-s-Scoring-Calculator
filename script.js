@@ -1,1 +1,181 @@
-<PASTE THE FINAL JS CONTENT GENERATED EARLIER HERE>
+// ==============================
+// Kev's Scoring Calculator - Final Refined JS
+// ==============================
+
+// CONSTANT GUTTER SIZE (locked)
+const GUTTER_SIZE = 0.125;
+
+// ==============================
+// MAIN CALCULATION + VISUALIZATION ENTRY POINT
+// ==============================
+function calculateAndRender() {
+  // Read and clean inputs
+  const pageLength = parseFloat(document.getElementById("page-length").value.trim());
+  const docLength = parseFloat(document.getElementById("doc-length").value.trim());
+  const scoreType = document.getElementById("score-type").value;
+  const customScoresInput = document.getElementById("custom-scores").value.trim();
+
+  // Input validation
+  if (isNaN(pageLength) || pageLength <= 0 || isNaN(docLength) || docLength <= 0) {
+    alert("Please enter valid positive numbers for page length and document length.");
+    return;
+  }
+
+  // Calculate max docs
+  const maxDocs = calculateMaxDocuments(pageLength, docLength, GUTTER_SIZE);
+
+  // Calculate doc start positions
+  const docStarts = calculateDocumentStartPositions(pageLength, docLength, GUTTER_SIZE, maxDocs);
+
+  // Calculate score positions
+  let scorePositions = [];
+  if (scoreType === "bifold") {
+    scorePositions = calculateBifoldScores(docStarts, docLength);
+  } else if (scoreType === "trifold") {
+    scorePositions = calculateTrifoldScores(docStarts, docLength);
+  } else if (scoreType === "gatefold") {
+    scorePositions = calculateGatefoldScores(docStarts, docLength);
+  } else if (scoreType === "custom") {
+    scorePositions = parseAbsoluteCustomScores(customScoresInput, pageLength);
+  }
+
+  // Display results
+  displayCalculationResults(maxDocs, docStarts, scorePositions);
+
+  // Draw visualization
+  renderVisualization(pageLength, docStarts, docLength, scorePositions);
+}
+
+// ==============================
+// CALCULATION FUNCTIONS
+// ==============================
+function calculateMaxDocuments(pageLength, docLength, gutterSize) {
+  return Math.floor((pageLength + gutterSize) / (docLength + gutterSize));
+}
+
+function calculateDocumentStartPositions(pageLength, docLength, gutterSize, maxDocs) {
+  const totalOccupied = (maxDocs * docLength) + ((maxDocs - 1) * gutterSize);
+  const remainingSpace = pageLength - totalOccupied;
+  const startOffset = remainingSpace / 2;
+
+  const starts = [];
+  for (let i = 0; i < maxDocs; i++) {
+    starts.push(Math.round((startOffset + i * (docLength + gutterSize)) * 1000) / 1000);
+  }
+  return starts;
+}
+
+function calculateBifoldScores(docStarts, docLength) {
+  return docStarts.map(start => Math.round((start + (docLength / 2)) * 1000) / 1000);
+}
+
+function calculateTrifoldScores(docStarts, docLength) {
+  const scores = [];
+  docStarts.forEach(start => {
+    scores.push(Math.round((start + (docLength / 3)) * 1000) / 1000);
+    scores.push(Math.round((start + (2 * docLength / 3)) * 1000) / 1000);
+  });
+  return scores;
+}
+
+function calculateGatefoldScores(docStarts, docLength) {
+  const scores = [];
+  docStarts.forEach(start => {
+    scores.push(Math.round((start + (docLength / 4)) * 1000) / 1000);
+    scores.push(Math.round((start + (3 * docLength / 4)) * 1000) / 1000);
+  });
+  return scores;
+}
+
+function parseAbsoluteCustomScores(input, pageLength) {
+  if (!input) return [];
+  const positions = input.split(",").map(x => parseFloat(x.trim()));
+  return positions
+    .filter(pos => !isNaN(pos) && pos >= 0 && pos <= pageLength)
+    .map(pos => Math.round(pos * 1000) / 1000);
+}
+
+// ==============================
+// DISPLAY + VISUALIZATION
+// ==============================
+function displayCalculationResults(maxDocs, docStarts, scorePositions) {
+  const out = document.getElementById("results");
+  out.innerHTML = `
+    <strong>Max Documents:</strong> ${maxDocs}<br>
+    <strong>Document Start Positions:</strong> ${docStarts.join(", ")}<br>
+    <strong>Score Positions:</strong> ${scorePositions.join(", ")}
+  `;
+}
+
+function renderVisualization(pageLength, docStarts, docLength, scorePositions) {
+  const canvas = document.getElementById("visualizer");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const scale = W / pageLength;
+  if (!isFinite(scale) || scale <= 0) {
+    alert("Page length too large or invalid for visualization.");
+    return;
+  }
+
+  ctx.save();
+
+  // Draw page outline
+  ctx.strokeStyle = "black";
+  ctx.strokeRect(0, H/4, W, H/2);
+
+  // Draw documents
+  ctx.fillStyle = "#87cefa";
+  docStarts.forEach(start => {
+    const x = start * scale;
+    const w = docLength * scale;
+    ctx.fillRect(x, H/4, w, H/2);
+  });
+
+  // Draw scores
+  ctx.strokeStyle = "red";
+  scorePositions.forEach(pos => {
+    const x = pos * scale;
+    ctx.beginPath();
+    ctx.moveTo(x, H/4);
+    ctx.lineTo(x, 3 * H/4);
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+// ==============================
+// QUICK SELECT + INTERACTION
+// ==============================
+function quickSelectPageLength(value) {
+  document.getElementById("page-length").value = value;
+}
+
+function quickSelectDocLength(value) {
+  document.getElementById("doc-length").value = value;
+}
+
+function selectScoreType(value) {
+  document.getElementById("score-type").value = value;
+  const customContainer = document.getElementById("custom-scores-container");
+  if (value === "custom") {
+    customContainer.style.display = "block";
+    document.getElementById("custom-scores").focus();
+  } else {
+    customContainer.style.display = "none";
+  }
+}
+
+// ==============================
+// INIT: Set gutter display if dynamic in future
+// ==============================
+document.addEventListener("DOMContentLoaded", () => {
+  const gutterDisplay = document.getElementById("gutter-display");
+  if (gutterDisplay) {
+    gutterDisplay.value = GUTTER_SIZE;
+  }
+});
