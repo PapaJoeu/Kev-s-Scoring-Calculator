@@ -16,7 +16,10 @@
         <button onclick="quickSelectPageLength(18)">18</button>
         <button onclick="quickSelectPageLength(19)">19</button>
       </div>
-      <input id="page-length" type="number" step="0.001" placeholder="Enter sheet length">
+      <label>
+        Sheet Length
+        <input id="page-length" type="number" step="0.001" placeholder="Enter sheet length">
+      </label>
     </div>
 
     <div class="section">
@@ -26,29 +29,39 @@
         <button onclick="quickSelectDocLength(8.5)">8.5</button>
         <button onclick="quickSelectDocLength(11)">11</button>
       </div>
-      <input id="doc-length" type="number" step="0.001" placeholder="Enter doc length">
+      <label>
+        Document Length
+        <input id="doc-length" type="number" step="0.001" placeholder="Enter doc length">
+      </label>
     </div>
 
     <div class="section">
       <div class="section-title">Gutter Size (Locked)</div>
-      <input id="gutter-display" type="text" value="0.125" disabled>
+      <label>
+        <input id="gutter-display" type="text" value="0.125" disabled>
+      </label>
     </div>
 
     <div class="section">
       <div class="section-title">Scoring Type</div>
-      <select id="score-type" onchange="selectScoreType(this.value)">
-        <option value="bifold">Bifold</option>
-        <option value="trifold">Trifold</option>
-        <option value="gatefold">Gate Fold</option>
-        <option value="custom">Custom</option>
-      </select>
+      <label>
+        <select id="score-type" onchange="selectScoreType(this.value)">
+          <option value="bifold">Bifold</option>
+          <option value="trifold">Trifold</option>
+          <option value="gatefold">Gate Fold</option>
+          <option value="custom">Custom</option>
+        </select>
+      </label>
       <div id="custom-scores-container" style="display:none;">
-        <input id="custom-scores" type="text" placeholder="Enter custom scores (e.g. 1, 3.25)">
+        <label>
+          Custom Scores (comma-separated)
+          <input id="custom-scores" type="text" placeholder="e.g. 1, 3.25">
+        </label>
       </div>
     </div>
 
     <div class="section">
-      <button onclick="calculateAndRender()">Calculate + Visualize</button>
+      <button class="calculate" onclick="calculateAndRender()">Calculate + Visualize</button>
     </div>
 
     <div class="section" id="results"></div>
