@@ -1,5 +1,5 @@
 // ==============================
-// Kev's Scoring Calculator - Final Refined JS
+// Kev's Scoring Calculator - Final JS (with custom score fix)
 // ==============================
 
 // CONSTANT GUTTER SIZE (locked)
@@ -36,7 +36,7 @@ function calculateAndRender() {
   } else if (scoreType === "gatefold") {
     scorePositions = calculateGatefoldScores(docStarts, docLength);
   } else if (scoreType === "custom") {
-    scorePositions = parseAbsoluteCustomScores(customScoresInput, pageLength);
+    scorePositions = calculateCustomDocScores(docStarts, docLength, customScoresInput);
   }
 
   // Display results
@@ -87,12 +87,19 @@ function calculateGatefoldScores(docStarts, docLength) {
   return scores;
 }
 
-function parseAbsoluteCustomScores(input, pageLength) {
+function calculateCustomDocScores(docStarts, docLength, input) {
   if (!input) return [];
-  const positions = input.split(",").map(x => parseFloat(x.trim()));
-  return positions
-    .filter(pos => !isNaN(pos) && pos >= 0 && pos <= pageLength)
-    .map(pos => Math.round(pos * 1000) / 1000);
+  const offsets = input.split(",").map(x => parseFloat(x.trim()));
+  const validOffsets = offsets.filter(offset => !isNaN(offset) && offset >= 0 && offset <= docLength);
+
+  const positions = [];
+  docStarts.forEach(start => {
+    validOffsets.forEach(offset => {
+      positions.push(Math.round((start + offset) * 1000) / 1000);
+    });
+  });
+
+  return positions;
 }
 
 // ==============================
@@ -125,14 +132,14 @@ function renderVisualization(pageLength, docStarts, docLength, scorePositions) {
 
   // Draw page outline
   ctx.strokeStyle = "black";
-  ctx.strokeRect(0, H/4, W, H/2);
+  ctx.strokeRect(0, H / 4, W, H / 2);
 
   // Draw documents
   ctx.fillStyle = "#87cefa";
   docStarts.forEach(start => {
     const x = start * scale;
     const w = docLength * scale;
-    ctx.fillRect(x, H/4, w, H/2);
+    ctx.fillRect(x, H / 4, w, H / 2);
   });
 
   // Draw scores
@@ -140,8 +147,8 @@ function renderVisualization(pageLength, docStarts, docLength, scorePositions) {
   scorePositions.forEach(pos => {
     const x = pos * scale;
     ctx.beginPath();
-    ctx.moveTo(x, H/4);
-    ctx.lineTo(x, 3 * H/4);
+    ctx.moveTo(x, H / 4);
+    ctx.lineTo(x, 3 * H / 4);
     ctx.stroke();
   });
 
